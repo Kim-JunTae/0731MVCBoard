@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<!-- properies 파일을 로드하기 위해 context라는 네임스페이스와 스키마 객체가 필요하다.
+    	 그래서 위에서 필요한 만큼 beans요소의 속성을 수정했다.(maven은 반자동)
+   	-->
+   	<!-- DAO에서 @Autowired를 사용한다. -->
+   	<context:annotation-config/>
+   	
+	<context:property-placeholder 
+	 location="classpath:mybatis/props/jdbc.properties"/>
+	
+	<!-- Apache의 DBCP(DataBase Connection Pool) 객체를 생성 -->
+	<!-- 서버가 닫아질때  -->
+	<bean id="ds" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${jdbc.driver}"/>
+		<property name="url" value="${jdbc.url}"/>
+		<property name="username" value="${jdbc.user}"/>
+		<property name="password" value="${jdbc.pwd}"/>
+		<property name="maxActive" value="${jdbc.maxActive}"/>
+		<property name="maxIdle" value="${jdbc.maxIdle}"/>
+		<property name="minIdle" value="${jdbc.minIdle}"/>
+	</bean>
+	
+	<bean id="factory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 앞서 생성된 ds객체를 현재 객체에 넣어줘야한다. -->
+		<property name="dataSource" ref="ds"/>
+		
+		<!-- 맵퍼들(인식)의 위치 지정 -->
+		<property name="mapperLocations" value="classpath:mybatis/mapper/*.xml"/>
+	</bean>
+	
+	<bean id="ss" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="factory"/>
+	</bean>
+	
+	<!-- 사용자가 필요에 따라 정의한 DAO들을 생성한다. autowire ="byType" 또는 autowire="byName"으로-->
+	<bean id="bbsDao" class="mybatis.dao.BbsDAO"/>
+	
+</beans>
